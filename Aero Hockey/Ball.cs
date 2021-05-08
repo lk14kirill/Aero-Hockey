@@ -36,18 +36,14 @@ namespace Aero_Hockey
             if (direction != new Vector2f(0, 0)) 
             {
                 float directionXAbs = Math.Abs(direction.X), directionYAbs = Math.Abs(direction.Y);
-                float tempX = direction.X * (window.X+500),tempY = direction.Y*(window.Y+500);
+                float tempX = direction.X * (window.X+500),tempY = direction.Y*(window.Y+500); // 500 here is to make movement not smooth when ball is close to border
                 float distance = (float)Math.Sqrt(Math.Pow(tempX-GetCenter().X, 2) + Math.Pow(tempY - GetCenter().Y , 2)); // dont know correct formule to calculate
-
 
                 Vector2f directionTemp = new Vector2f(speed * timeFromGame * (tempX -GetCenter().X*directionXAbs) / distance,
                                                       speed * timeFromGame * (tempY -GetCenter().Y*directionYAbs) / distance);
                 ballGO.Position += directionTemp;
-               
-                    // direction.X and direction.Y on the start of formule makes x or y 0 if it is 0.If vector is 0,1 ,then x for moving will be 0.
-                
+                    // directionXAbs and directionYAbs in the formule makes x or y 0 if it is 0.If vector is 0,1 ,then x for moving will be 0.
             }
-            
         }
         public void Reflect(Vector2u window, Vector2f? oldDirection, out Vector2f? newDirection)
         {
@@ -72,6 +68,5 @@ namespace Aero_Hockey
         {
             return false;
         }
-
     }
 }

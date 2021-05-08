@@ -14,16 +14,16 @@ namespace Aero_Hockey
         private float mouseY;
         public double time;
         private Vector2f? direction;
-        private List<Drawable> objectsToDraw = new List<Drawable>();
         private int[] score = new int[2];
         private int[] scoreForText = new int[2];           
-        private Text scoreText = new Text();
-
+        //
         private Clock clock = new Clock();
 
+        private List<Drawable> objectsToDraw = new List<Drawable>();
+        private Text scoreText = new Text();
         private GameRacket gameRacket = new GameRacket(Color.Cyan);
         private Ball ball = new Ball(Color.Red);                             
-        RenderWindow window = new RenderWindow(new VideoMode(1000,1000), "Game window");
+        private RenderWindow window = new RenderWindow(new VideoMode(1000,1000), "Game window");
         public   double GetTime() => time;
         public void GameCycle()
         {
@@ -35,7 +35,7 @@ namespace Aero_Hockey
             {
                 time = clock.ElapsedTime.AsMicroseconds();
                 clock.Restart();
-                time /= 800;
+                time /= 800;                                              //for smoother movement of ball
                 ball.timeFromGame = (float)time;
 
                 window.Clear();
@@ -53,7 +53,6 @@ namespace Aero_Hockey
 
                     ball.Move(direction.Value,window.Size);
                 }
-
                 DrawObjects();
                 window.Display();
             }
@@ -82,7 +81,6 @@ namespace Aero_Hockey
             if (vector != null && vector.Value != new Vector2f(0, 0))
             {
                 direction = vector;
-
             }
         }
         private void TextSetup(Color color)
@@ -118,7 +116,6 @@ namespace Aero_Hockey
             { 
                 direction =  DetectSide(racket, ball);
             }
-           
         }
         private Vector2f? DetectSide(GameRacket racket,Ball ball)
         {
