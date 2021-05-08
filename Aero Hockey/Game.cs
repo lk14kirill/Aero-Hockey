@@ -12,7 +12,6 @@ namespace Aero_Hockey
         private float mouseY;
         public double time;
         private Vector2f? direction;
-        System.Numerics.Vector3 s = new System.Numerics.Vector3();
         //private int[] score = new int[2];
         //private int[] scoreForText = new int[2]                for future
         //private Text scoreText = new Text();
@@ -20,7 +19,7 @@ namespace Aero_Hockey
         private Clock clock = new Clock();
 
         private GameRacket gameRacket = new GameRacket(Color.Cyan);
-        private Ball ball = new Ball(Color.Red);
+        private Ball ball = new Ball(Color.Red);                             
         RenderWindow window = new RenderWindow(new VideoMode(1000,1000), "Game window");
         public   double GetTime() => time;
         public void GameCycle()
@@ -41,10 +40,10 @@ namespace Aero_Hockey
                 gameRacket.ChangePosition(new Vector2f(mouseX - gameRacket.GetRadius(), mouseY - gameRacket.GetRadius()));
                 CheckForIntersect(gameRacket, ball, out Vector2f? tempDirection);
                 ChangeDirection(tempDirection);
-                ball.CheckForRickochet(window.Size, out Vector2f? tempDirectionFromRicochet);
-                ChangeDirection(tempDirectionFromRicochet);
-                // ball.Reflection(Vector2Directions.left, out Vector2f newDirection);
-                // Console.WriteLine(newDirection);
+
+              //  ball.Reflect(window.Size, direction, out Vector2f? tempDirectionFromRicochet);
+               // ChangeDirection(tempDirectionFromRicochet);
+                
                 if ( direction != null)
                 {
 
@@ -60,7 +59,7 @@ namespace Aero_Hockey
         {
             window.MouseMoved += OnMouseMoved;
             window.Closed += WindowClosed;
-           // window.SetMouseCursorVisible(false);
+            window.SetMouseCursorVisible(false);
         }
         private void ChangeDirection(Vector2f? vector)
         {
