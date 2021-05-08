@@ -3,7 +3,6 @@ using System.Threading;
 using SFML.Graphics;
 using SFML.System;
 using System;
-using System.Numerics;
 
 namespace Aero_Hockey
 {
@@ -17,7 +16,7 @@ namespace Aero_Hockey
         {
             ballGO = new CircleShape();
             timeFromGame = 0;
-            speed = 0.9f;
+            speed = 0.5f;
             ballGO.Radius = 20;
             ballGO.FillColor = color;
         }
@@ -34,15 +33,15 @@ namespace Aero_Hockey
 
         public void Move(Vector2f direction,Vector2u window)
         {
-            if (direction != new Vector2f(0, 0)) absolute value c++
-
-
+            if (direction != new Vector2f(0, 0)) 
             {
-                float tempX = direction.X * window.X,tempY = direction.Y*window.Y;
-                float distance = (float)Math.Sqrt(Math.Pow(tempX-GetCenter().X ,2)+Math.Pow(tempY - GetCenter().Y, 2)); // dont know correct formule to calculate 
-              Vector2f directionTemp = new Vector2f(speed  * timeFromGame * (tempX-GetCenter().X) / distance,
-                                speed * timeFromGame * (tempY -GetCenter().Y) / distance);
-                directionTemp = new Vector2f(directionTemp.X * Math.Abs(direction.X), directionTemp.Y * Math.Abs( direction.Y);
+                float directionXAbs = Math.Abs(direction.X), directionYAbs = Math.Abs(direction.Y);
+                float tempX = direction.X * (window.X+500),tempY = direction.Y*(window.Y+500);
+                float distance = (float)Math.Sqrt(Math.Pow(tempX-GetCenter().X, 2) + Math.Pow(tempY - GetCenter().Y , 2)); // dont know correct formule to calculate
+
+
+                Vector2f directionTemp = new Vector2f(speed * timeFromGame * (tempX -GetCenter().X*directionXAbs) / distance,
+                                                      speed * timeFromGame * (tempY -GetCenter().Y*directionYAbs) / distance);
                 ballGO.Position += directionTemp;
                
                     // direction.X and direction.Y on the start of formule makes x or y 0 if it is 0.If vector is 0,1 ,then x for moving will be 0.
@@ -52,30 +51,26 @@ namespace Aero_Hockey
         }
         public void Reflect(Vector2u window, Vector2f? oldDirection, out Vector2f? newDirection)
         {
-            float xBound = window.X / 100 * 10;
-            float yBound = window.Y / 100 * 10;
+
             newDirection = null;
             if(oldDirection == null)
             {
                 return;
             }
-            if(GetCenter().X + GetRadius()>window.X || GetCenter().X-GetRadius() <window.X)
+            float xBorder = window.X / 100 * 2;
+            float yBorder = window.Y / 100 * 2;
+            if (GetCenter().X + GetRadius()>window.X-xBorder || GetCenter().X-GetRadius() <xBorder)
             {
                 newDirection = new Vector2f(-oldDirection.Value.X, oldDirection.Value.Y);
             }
-            if(GetCenter().Y + GetRadius() > window.Y  || GetCenter().Y - GetRadius() < window.Y)
+            if(GetCenter().Y + GetRadius() > window.Y-yBorder  || GetCenter().Y - GetRadius() <yBorder)
             {
                 newDirection = new Vector2f(oldDirection.Value.X, -oldDirection.Value.Y);
             }
         }
-        public void Reflection(Vector2f direction,out Vector2f newDirection)
+        public bool CheckInteractionWithZone(Vector2f firstPoint,Vector2f secondPoint,bool upSideZone)
         {
-            float normalizedVector = (float)Math.Sqrt(direction.X * direction.X + direction.Y * direction.Y);
-            float normalizedVectortest = (float)Math.Sqrt(ballGO.Position.X * ballGO.Position.X+ ballGO.Position.Y * ballGO.Position.Y);
-            float dotProduct = (float)Vector2.Dot(new Vector2(ballGO.Position.X/normalizedVectortest, ballGO.Position.Y/normalizedVectortest), new Vector2(direction.X, direction.Y));
-           
-            newDirection.X = (direction.X - 2 * dotProduct * normalizedVector)/1000;
-            newDirection.Y = (direction.Y - 2 * dotProduct * normalizedVector)/1000;
+            return false;
         }
 
     }

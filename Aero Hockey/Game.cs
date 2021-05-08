@@ -3,6 +3,8 @@ using System.Numerics;
 using SFML.Graphics;
 using SFML.Window;
 using SFML.System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Aero_Hockey
 {
@@ -12,9 +14,10 @@ namespace Aero_Hockey
         private float mouseY;
         public double time;
         private Vector2f? direction;
-        //private int[] score = new int[2];
-        //private int[] scoreForText = new int[2]                for future
-        //private Text scoreText = new Text();
+        private List<Drawable> objectsToDraw = new List<Drawable>();
+        private int[] score = new int[2];
+        private int[] scoreForText = new int[2];           
+        private Text scoreText = new Text();
 
         private Clock clock = new Clock();
 
@@ -25,7 +28,8 @@ namespace Aero_Hockey
         public void GameCycle()
         {
             WindowSetup();
-            //TextSetup(Color.Red);
+            AddAllDrawableObjectsToList();
+            TextSetup(Color.Blue);
             ball.ChangePosition(new Vector2f(window.Size.X / 2, window.Size.Y / 2));
             while (window.IsOpen)
             {
@@ -41,19 +45,31 @@ namespace Aero_Hockey
                 CheckForIntersect(gameRacket, ball, out Vector2f? tempDirection);
                 ChangeDirection(tempDirection);
 
-              //  ball.Reflect(window.Size, direction, out Vector2f? tempDirectionFromRicochet);
-               // ChangeDirection(tempDirectionFromRicochet);
+               ball.Reflect(window.Size, direction, out Vector2f? tempDirectionFromRicochet);
+               ChangeDirection(tempDirectionFromRicochet);
                 
                 if ( direction != null)
                 {
 
                     ball.Move(direction.Value,window.Size);
                 }
-               
-                window.Draw(ball.GetBallGO());
-                window.Draw(gameRacket.GetRacketGO());
+
+                DrawObjects();
                 window.Display();
             }
+        }
+        private void AddAllDrawableObjectsToList()
+        {
+            objectsToDraw.Add(gameRacket.GetRacketGO());
+            objectsToDraw.Add(ball.GetBallGO());
+            objectsToDraw.Add(scoreText);
+        }
+        private void DrawObjects()
+        {
+            foreach(Drawable shape in objectsToDraw)
+            {
+                window.Draw(shape);
+            }         
         }
         private void WindowSetup()
         {
@@ -69,19 +85,19 @@ namespace Aero_Hockey
 
             }
         }
-        //private void TextSetup(Color color)
-        //{
-        //    scoreText.FillColor = color;
-        //    scoreText.Position = new Vector2f(540, 650);
-        //    scoreText.Scale = new Vector2f(200, 200);
-        //    scoreText.CharacterSize = 50;                                            for future
-
-        //    scoreText.DisplayedString = "0:0";
-        //}
-        //private void ChangeTextScore()
-        //{
-        //    scoreText.DisplayedString = scoreForText[0]+":"+ scoreForText[1];
-        //}
+        private void TextSetup(Color color)
+        {
+            scoreText.FillColor = color;
+            scoreText.Position = new Vector2f(0, 0);
+            scoreText.CharacterSize = 60;
+            Font font = new Font(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) +"\\font.ttf");   
+            scoreText.Font = font;
+            scoreText.DisplayedString = "0:0";
+        }
+        private void ChangeTextScore()
+        {
+            scoreText.DisplayedString = scoreForText[0]+":"+ scoreForText[1];
+        }
         public void OnMouseMoved(object sender, MouseMoveEventArgs e)
         {
             mouseX = e.X;
@@ -167,7 +183,7 @@ namespace Aero_Hockey
             }
 
             return null;
-        }
+        }  
 
     }
 }
