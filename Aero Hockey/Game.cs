@@ -10,27 +10,28 @@ namespace Aero_Hockey
 {
     class Game
     {
-        private float mouseX;
-        private float mouseY;
-        public double time;
-        private Vector2f? direction;
-        private int[] score = new int[2];
-        private int[] scoreForText = new int[2];           
-        //
-        private Clock clock = new Clock();
-
         private List<Drawable> objectsToDraw = new List<Drawable>();
         private Text scoreText = new Text();
         private GameRacket gameRacket = new GameRacket(Color.Cyan);
-        private Ball ball = new Ball(Color.Red);                             
-        private RenderWindow window = new RenderWindow(new VideoMode(1000,1000), "Game window");
-        public   double GetTime() => time;
+        private Ball ball = new Ball(Color.Red);
+        private RenderWindow window = new RenderWindow(new VideoMode(1000, 1000), "Game window");
+        private Clock clock = new Clock();
+
+        private Vector2f[] UpperGate = new Vector2f[2];
+        private Vector2f[] Gate = new Vector2f[2];
+        private Vector2f direction;
+        private float mouseX;
+        private float mouseY;
+        private float xBorder;
+        private float yBorder;
+
+        public double time;
+        private int[] score = new int[2];
+        private int[] scoreForText = new int[2];
+
         public void GameCycle()
         {
-            WindowSetup();
-            AddAllDrawableObjectsToList();
-            TextSetup(Color.Blue);
-            ball.ChangePosition(new Vector2f(window.Size.X / 2, window.Size.Y / 2));
+            Init();
             while (window.IsOpen)
             {
                 time = clock.ElapsedTime.AsMicroseconds();
@@ -42,25 +43,58 @@ namespace Aero_Hockey
                 window.DispatchEvents();
 
                 gameRacket.ChangePosition(new Vector2f(mouseX - gameRacket.GetRadius(), mouseY - gameRacket.GetRadius()));
-                CheckForIntersect(gameRacket, ball, out Vector2f? tempDirection);
-                ChangeDirection(tempDirection);
+                ChangeDirection(MathExt.CheckForIntersectAndDetectDirection(gameRacket, ball));
 
-               ball.Reflect(window.Size, direction, out Vector2f? tempDirectionFromRicochet);
-               ChangeDirection(tempDirectionFromRicochet);
-                
-                if ( direction != null)
+                if (direction != new Vector2f(0, 0))
                 {
-
-                    ball.Move(direction.Value,window.Size);
+                    ChangeDirection(ball.Reflect(window.Size, direction, xBorder, yBorder));
                 }
+                if (direction != new Vector2f(0, 0))
+                {
+                    ball.Move(direction, window.Size);
+                }
+                SomeoneScore();
                 DrawObjects();
                 window.Display();
             }
         }
+        private void SomeoneScore()
+        {
+            if (ball.CheckInteractionWithGate(UpperGate[0],UpperGate[1],true))
+            {
+                scoreForText[0] += 1;
+                ChangeTextScore();
+                ball.ChangePosition(new Vector2f(window.Size.X / 2, window.Size.Y / 2));
+                direction = new Vector2f(0, 0);
+            }
+            if (ball.CheckInteractionWithGate(Gate[0], Gate[1], false))
+            {
+                scoreForText[1] += 1;
+                ChangeTextScore();
+                ball.ChangePosition(new Vector2f(window.Size.X / 2, window.Size.Y / 2));
+                direction = new Vector2f(0, 0);
+            }
+        }
+        private void Init()
+        {
+            WindowSetup();
+            SetupFieldObjects();
+            AddAllDrawableObjectsToList();
+            TextSetup(Color.Blue);
+        }
+        private void SetupFieldObjects()
+        {
+             xBorder = MathExt.GetPercentOf(window.Size.X, 2);
+             yBorder = MathExt.GetPercentOf(window.Size.Y, 2);
+            (UpperGate[0], UpperGate[1]) = MathExt.CreateGates(window.Size, true);
+            (Gate[0], Gate[1]) = MathExt.CreateGates(window.Size, false);
+            ball.ChangePosition(new Vector2f(window.Size.X / 2, window.Size.Y / 2));
+
+        }
         private void AddAllDrawableObjectsToList()
         {
-            objectsToDraw.Add(gameRacket.GetRacketGO());
-            objectsToDraw.Add(ball.GetBallGO());
+            objectsToDraw.Add(gameRacket.GetGO());
+            objectsToDraw.Add(ball.GetGO());
             objectsToDraw.Add(scoreText);
         }
         private void DrawObjects()
@@ -76,9 +110,9 @@ namespace Aero_Hockey
             window.Closed += WindowClosed;
             window.SetMouseCursorVisible(false);
         }
-        private void ChangeDirection(Vector2f? vector)
+        private void ChangeDirection(Vector2f vector)
         {
-            if (vector != null && vector.Value != new Vector2f(0, 0))
+            if (vector != new Vector2f(0, 0))
             {
                 direction = vector;
             }
@@ -106,81 +140,5 @@ namespace Aero_Hockey
             RenderWindow w = (RenderWindow)sender;
             w.Close();
         }
-        private void CheckForIntersect(GameRacket racket, Ball ball, out Vector2f? direction)     //Ricochets first circle
-        {
-            double distanceBetweenRadiuses;
-            direction = new Vector2f(0, 0);
-            distanceBetweenRadiuses = Math.Sqrt(Math.Pow(ball.GetCenter().X - racket.GetCenter().X, 2) + 
-                                                Math.Pow(ball.GetCenter().Y - racket.GetCenter().Y, 2));
-            if (distanceBetweenRadiuses<= racket.GetRadius() + ball.GetRadius())
-            { 
-                direction =  DetectSide(racket, ball);
-            }
-        }
-        private Vector2f? DetectSide(GameRacket racket,Ball ball)
-        {
-            Vector2f centreOfRadiuses = new Vector2f((racket.GetCenter().X + ball.GetCenter().X) / 2,
-                                                     (racket.GetCenter().Y + ball.GetCenter().Y) / 2);
-            if (centreOfRadiuses.X > racket.GetCenter().X  &&
-                centreOfRadiuses.X < racket.GetCenter().X + racket.GetRadius()- 10 &&
-                centreOfRadiuses.Y > racket.GetCenter().Y  &&                               //checks for intersect on upLeft
-               centreOfRadiuses.Y < racket.GetCenter().Y + racket.GetRadius() - 10)
-            {
-                return Vector2Directions.downRight;
-            }
-            if (centreOfRadiuses.X > racket.GetCenter().X &&
-                centreOfRadiuses.X < racket.GetCenter().X + racket.GetRadius()  - 10&&
-                centreOfRadiuses.Y < racket.GetCenter().Y &&                                    //checks for intersect on downLeft
-               centreOfRadiuses.Y > racket.GetCenter().Y - racket.GetRadius() + 10)
-            {
-                return Vector2Directions.upRight;
-            }
-            if (centreOfRadiuses.X < racket.GetCenter().X &&
-                centreOfRadiuses.X > racket.GetCenter().X - racket.GetRadius() + 10&&
-                centreOfRadiuses.Y < racket.GetCenter().Y  &&                                 //checks for intersect on downRight
-                centreOfRadiuses.Y > racket.GetCenter().Y - racket.GetRadius() + 10)
-            {
-                return Vector2Directions.upLeft;
-            }
-            if (centreOfRadiuses.X < racket.GetCenter().X &&
-                centreOfRadiuses.X > racket.GetCenter().X - racket.GetRadius()  + 10&&
-                centreOfRadiuses.Y > racket.GetCenter().Y &&                                    //checks for intersect on upRight
-                centreOfRadiuses.Y < racket.GetCenter().Y + racket.GetRadius() - 10)
-            {
-                return Vector2Directions.downLeft;
-            }
-
-            if (centreOfRadiuses.X > racket.GetCenter().X - racket.GetRadius() + 20 &&
-                centreOfRadiuses.X < racket.GetCenter().X + racket.GetRadius() - 20 &&
-                centreOfRadiuses.Y > racket.GetCenter().Y &&                                    //checks for intersect on up
-                centreOfRadiuses.Y < racket.GetCenter().Y + racket.GetRadius() + 10)
-            {
-                return Vector2Directions.down;
-            }
-            if (centreOfRadiuses.X > racket.GetCenter().X - racket.GetRadius() + 20 &&
-                centreOfRadiuses.X < racket.GetCenter().X + racket.GetRadius() - 20 &&
-                centreOfRadiuses.Y < racket.GetCenter().Y &&                                    //checks for intersect on down
-                centreOfRadiuses.Y > racket.GetCenter().Y - racket.GetRadius() - 10)
-            {
-                return Vector2Directions.up;
-            }
-            if (centreOfRadiuses.X > racket.GetCenter().X &&
-             centreOfRadiuses.X < racket.GetCenter().X + racket.GetRadius() + 10 &&
-             centreOfRadiuses.Y > racket.GetCenter().Y - racket.GetRadius() + 20&&                                    //checks for intersect on left
-             centreOfRadiuses.Y < racket.GetCenter().Y + racket.GetRadius() - 20)
-            {
-                return Vector2Directions.right;
-            }
-            if (centreOfRadiuses.X < racket.GetCenter().X &&
-                centreOfRadiuses.X > racket.GetCenter().X - racket.GetRadius() - 10 &&
-                centreOfRadiuses.Y > racket.GetCenter().Y - racket.GetRadius() + 20 &&                                    //checks for intersect on right
-                centreOfRadiuses.Y < racket.GetCenter().Y + racket.GetRadius() - 20)
-            {
-                return Vector2Directions.left;
-            }
-
-            return null;
-        }  
-
     }
 }
