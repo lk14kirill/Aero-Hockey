@@ -8,17 +8,15 @@ namespace Aero_Hockey
 {
     class Ball : CircleObject
     {
-        public float timeFromGame;
         public float speed;
 
         public Ball(Color color)
         {
-            timeFromGame = 0;
             speed = 0.5f;
             gameObject.Radius = 20;
             gameObject.FillColor = color;
         }
-        public void Move(Vector2f direction,Vector2u window)
+        public void Move(Vector2f direction,Vector2u window,float time)
         {
             if (direction != new Vector2f(0, 0)) 
             {
@@ -26,8 +24,8 @@ namespace Aero_Hockey
                 Vector2f tempVector = new Vector2f(direction.X * (window.X+window.X/2), direction.Y*(window.Y+window.Y/2)); // window. /2 here is to make movement not smooth when ball is close to border
                 float distance = MathExt.VectorLength(tempVector, GetCenter()); 
 
-                Vector2f directionTemp = new Vector2f(speed * timeFromGame * (tempVector.X -GetCenter().X*directionXAbs) / distance,
-                                                      speed * timeFromGame * (tempVector.Y -GetCenter().Y*directionYAbs) / distance);
+                Vector2f directionTemp = new Vector2f(speed * time * (tempVector.X -GetCenter().X*directionXAbs) / distance,
+                                                      speed * time * (tempVector.Y -GetCenter().Y*directionYAbs) / distance);
                 gameObject.Position += directionTemp;
                     // directionXAbs and directionYAbs in the formule makes x or y 0 if it is 0.If vector is 0,1 ,then x for moving will be 0.
             }

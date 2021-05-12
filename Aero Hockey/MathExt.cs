@@ -32,13 +32,13 @@ namespace Aero_Hockey
             switch (upside)
             {
                 case true:
-                    float yPos1 = 0 + GetPercentOf(window.Y, 3);
+                    float yPos1 = 0 + GetPercentOf(window.Y, 2.01f);
                     firstPoint = secondpoint = new Vector2f(xPos1, yPos1);
                     secondpoint.X = xPos2;
                     return (firstPoint, secondpoint);
                     break;
                 case false:
-                    float yPos2 = window.Y - GetPercentOf(window.Y, 3);
+                    float yPos2 = window.Y - GetPercentOf(window.Y, 2.01f);
                     firstPoint = secondpoint = new Vector2f(xPos1, yPos2);
                     secondpoint.X = xPos2;
                     return (firstPoint, secondpoint);
@@ -108,6 +108,12 @@ namespace Aero_Hockey
             }
 
             return new Vector2f(0, 0);
+        }
+        public static bool IsVectorBiggerThenWindowY(CircleObject circle, Vector2u window)
+        {
+            if (circle.GetCenter().Y - circle.GetRadius() > GetPercentOf(window.Y, 50))
+                return true;
+            return false;
         }
     }
 }

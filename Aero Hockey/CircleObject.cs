@@ -6,7 +6,7 @@ namespace Aero_Hockey
    public  class CircleObject
     {
         public CircleShape gameObject = new CircleShape();
-        public void ChangePosition(Vector2f vector) => gameObject.Position = vector;
+        public void ChangePosition(Vector2f vector) => gameObject.Position = new Vector2f(vector.X - GetRadius(),vector.Y -GetRadius());
 
         public Vector2f GetPosition() => new Vector2f(gameObject.Position.X, gameObject.Position.Y);
 
