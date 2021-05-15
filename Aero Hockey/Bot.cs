@@ -14,13 +14,14 @@ namespace Aero_Hockey
 
         public void MoveTo(Vector2f vector,float time)
         {
-            float distance = MathExt.VectorLength(vector, racket.GetCenter());
+            if (racket.GetCanMove())
+            {
+                float distance = MathExt.VectorLength(vector, racket.GetCenter());
 
-            Vector2f directionTemp = new Vector2f(speed * time * (vector.X - racket.GetCenter().X)  / distance,
-                                                  speed * time * (vector.Y - racket.GetCenter().Y)  / distance);
-            racket.gameObject.Position += directionTemp;
+                Vector2f directionTemp = new Vector2f(speed * time * (vector.X - racket.GetCenter().X) / distance,
+                                                      speed * time * (vector.Y - racket.GetCenter().Y) / distance);
+                racket.gameObject.Position += directionTemp;
+            }
         }
-     
-
     }
 }

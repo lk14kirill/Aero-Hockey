@@ -7,7 +7,6 @@ namespace Aero_Hockey
     {
         public static float VectorLength(Vector2f firstVector, Vector2f secondVector)
         {
-
             return (float)Math.Sqrt(Math.Pow(secondVector.X - firstVector.X, 2) +
                                     Math.Pow(secondVector.Y - firstVector.Y, 2));
         }
@@ -15,9 +14,19 @@ namespace Aero_Hockey
         {
             return value / 100 * percent;
         }
+        public static bool CheckForIntersect(CircleObject firstCircle, CircleObject secondCircle)     //Ricochets first circle
+        {
+            double distanceBetweenRadiuses = VectorLength(secondCircle.GetCenter(), firstCircle.GetCenter()); ;
+
+            if (distanceBetweenRadiuses <= firstCircle.GetRadius() + secondCircle.GetRadius())
+            {
+                return true;
+            }
+            return false;
+        }
         public static  Vector2f CheckForIntersectAndDetectDirection(CircleObject firstCircle, CircleObject secondCircle)     //Ricochets first circle
         {
-            double distanceBetweenRadiuses = MathExt.VectorLength(secondCircle.GetCenter(), firstCircle.GetCenter()); ;
+            double distanceBetweenRadiuses = VectorLength(secondCircle.GetCenter(), firstCircle.GetCenter()); ;
 
             if (distanceBetweenRadiuses <= firstCircle.GetRadius() + secondCircle.GetRadius())
             {

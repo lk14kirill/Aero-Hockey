@@ -8,15 +8,61 @@ using System.IO;
 
 namespace Aero_Hockey
 {
-    class Game
+    class CircleItemList
+    {
+        private List<CircleItem> circleItems = new List<CircleItem>();
+
+        public void CreateItem(CircleItem item)
+        {
+            circleItems.Add(item);
+        }
+        public void UseSpawnOfItems(Vector2u window)
+        {
+            foreach(CircleItem item in circleItems)
+            {
+                 item.ChangePosition(item.RandomSpawn(window));
+            }
+        }
+        public void CheckCircleOnCollisionWithItemsAndUseFeature(CircleObject circle,Vector2u window)
+        {
+            foreach(CircleItem item in circleItems)
+                if (MathExt.CheckForIntersect(item, circle))
+                {
+                    item.UseFeature(circle);
+                    item.ChangePosition(item.RandomSpawn(window)); 
+                }
+            
+        }
+        public List<CircleItem> GetList() => circleItems;
+    }
+    class ObjectsToDrawList
     {
         private List<Drawable> objectsToDraw = new List<Drawable>();
-        private Text scoreText = new Text();
+        public void Add(Drawable drawable)
+        {
+            objectsToDraw.Add(drawable);  
+        }
+        public void AddItemList(List<CircleItem> list)
+        {
+            foreach (CircleItem item in list)
+            {
+                objectsToDraw.Add(item.gameObject);
+            }
+        }
+        public List<Drawable> GetList() => objectsToDraw;
+    }
+    class Game
+    {
+        private CircleItemList itemListRef = new CircleItemList();
+        private ObjectsToDrawList objectsDrawListRef = new ObjectsToDrawList();
+
         private GameRacket gameRacket = new GameRacket(Color.Red);
-        private Ball ball = new Ball(Color.White);
-        private RenderWindow window = new RenderWindow(new VideoMode(1000, 1000), "Game window");
-        private Clock clock = new Clock();
         private Bot bot = new Bot(0.2f);
+        private Ball ball = new Ball(Color.White);
+
+        private Clock clock = new Clock();
+        private RenderWindow window = new RenderWindow(new VideoMode(1000, 1000), "Game window");
+        private Text scoreText = new Text();
 
         private Vector2f[] UpperGate = new Vector2f[2];
         private Vector2f[] Gate = new Vector2f[2];
@@ -34,35 +80,55 @@ namespace Aero_Hockey
         {
             Init();
             while (window.IsOpen && score[0] != 10 && score[1] != 10) 
-            {
-                time = clock.ElapsedTime.AsMicroseconds();
-                clock.Restart();
-                time /= 800;                                              //for smoother movement of ball
-
-                window.Clear();
-                window.DispatchEvents();
-
-                    gameRacket.ChangePosition(new Vector2f(mouseX - gameRacket.GetRadius(), mouseY - gameRacket.GetRadius()));
-
-                ChangeDirection(MathExt.CheckForIntersectAndDetectDirection(gameRacket, ball));
-                ChangeDirection(MathExt.CheckForIntersectAndDetectDirection(bot.racket, ball));
-                if (!MathExt.IsVectorBiggerThenWindowY(bot.racket, window.Size))
-                    bot.MoveTo(ball.GetCenter(), (float)time);
-                else
-                    bot.MoveTo(new Vector2f(window.Size.X / 2, MathExt.GetPercentOf(window.Size.Y, 10)),(float)time);
-
-
-                if (direction != new Vector2f(0, 0))
-                    ChangeDirection(ball.Reflect(window.Size, direction, xBorder, yBorder));
-
-                if (direction != new Vector2f(0, 0))
-                    ball.Move(direction, window.Size,(float)time);
-
-                SomeoneScore();
-                DrawObjects();
-                window.Display();
+            { 
+                Cycle();
             }
         }
+        private void Init()
+        {
+            WindowSetup();
+            SetupFieldObjects();
+            TextSetup(Color.Blue);
+            itemListRef.CreateItem(InvisibleStopper.CreateStopper());
+            itemListRef.UseSpawnOfItems(window.Size);
+            AddAllDrawableObjectsToList();
+        }
+        private void Cycle()
+        {
+            time = clock.ElapsedTime.AsMicroseconds();
+            clock.Restart();
+            time /= 800;                                              //for smoother movement of ball
+
+            window.Clear();
+            window.DispatchEvents();
+
+            
+            itemListRef.CheckCircleOnCollisionWithItemsAndUseFeature(gameRacket,window.Size);
+            itemListRef.CheckCircleOnCollisionWithItemsAndUseFeature(bot.racket,window.Size);
+
+            gameRacket.ChangePosition(new Vector2f(mouseX - gameRacket.GetRadius(), mouseY - gameRacket.GetRadius()));
+
+            ChangeDirection(MathExt.CheckForIntersectAndDetectDirection(gameRacket, ball));
+            ChangeDirection(MathExt.CheckForIntersectAndDetectDirection(bot.racket, ball));
+
+            if (!MathExt.IsVectorBiggerThenWindowY(bot.racket, window.Size))
+                bot.MoveTo(ball.GetCenter(), (float)time);
+            else
+                bot.MoveTo(new Vector2f(window.Size.X / 2, MathExt.GetPercentOf(window.Size.Y, 10)), (float)time);
+
+
+            if (direction != new Vector2f(0, 0))
+                ChangeDirection(ball.Reflect(window.Size, direction, xBorder, yBorder));
+
+            if (direction != new Vector2f(0, 0))
+                ball.Move(direction, window.Size, (float)time);
+
+            SomeoneScore();
+            DrawObjects();
+            window.Display();
+        }
+
+
         private void SomeoneScore()
         {
             if (ball.CheckInteractionWithGate(UpperGate[0],UpperGate[1],true))
@@ -85,13 +151,6 @@ namespace Aero_Hockey
             direction = new Vector2f(0, 0);
             bot.racket.GoToStartPoint(window.Size,10);
         }
-        private void Init()
-        {
-            WindowSetup();
-            SetupFieldObjects();
-            AddAllDrawableObjectsToList();
-            TextSetup(Color.Blue);
-        }
         private void SetupFieldObjects()
         {
              xBorder = MathExt.GetPercentOf(window.Size.X, 2);
@@ -104,14 +163,16 @@ namespace Aero_Hockey
         }
         private void AddAllDrawableObjectsToList()
         {
-            objectsToDraw.Add(gameRacket.GetGO());
-            objectsToDraw.Add(ball.GetGO());
-            objectsToDraw.Add(scoreText);
-            objectsToDraw.Add(bot.racket.GetGO());
+            objectsDrawListRef.Add(gameRacket.GetGO());
+            objectsDrawListRef.Add(ball.GetGO());
+            objectsDrawListRef.Add(scoreText);
+            objectsDrawListRef.Add(bot.racket.GetGO());
+            objectsDrawListRef.AddItemList(itemListRef.GetList());
+            
         }
         private void DrawObjects()
         {
-            foreach(Drawable shape in objectsToDraw)
+            foreach(Drawable shape in objectsDrawListRef.GetList())
             {
                 window.Draw(shape);
             }         

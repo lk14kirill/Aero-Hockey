@@ -18,7 +18,7 @@ namespace Aero_Hockey
         }
         public void Move(Vector2f direction,Vector2u window,float time)
         {
-            if (direction != new Vector2f(0, 0)) 
+            if (direction != new Vector2f(0, 0) && GetCanMove()) 
             {
                 float directionXAbs = Math.Abs(direction.X), directionYAbs = Math.Abs(direction.Y);
                 Vector2f tempVector = new Vector2f(direction.X * (window.X+window.X/2), direction.Y*(window.Y+window.Y/2)); // window. /2 here is to make movement not smooth when ball is close to border
